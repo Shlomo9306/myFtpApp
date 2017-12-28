@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="MedicalModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Claims">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ClaimNumber" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="DataImported" Type="datetime" Nullable="false" />
+          <Property Name="FileName" Type="int" Nullable="false" />
+          <Property Name="Status" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ClaimStatusType">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Type" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FilesProccessed">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FileName" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="ProccessedStatus" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="SuspiciousCodes">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="SuspiciousClaimsCode" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'Medical.dbo.View_SuspicicousCodes' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="View_SuspicicousCodes">
+          <Key>
+            <PropertyRef Name="Status" />
+          </Key>
+          <Property Name="ID" Type="int" />
+          <Property Name="DataImported" Type="datetime" />
+          <Property Name="FileName" Type="int" />
+          <Property Name="Status" Type="int" Nullable="false" />
+        </EntityType>
+        <Function Name="usp_proccessFile" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="FilePathName" Type="nvarchar(max)" Mode="In" />
+        </Function>
+        <EntityContainer Name="MedicalModelStoreContainer">
+          <EntitySet Name="Claims" EntityType="Self.Claims" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ClaimStatusType" EntityType="Self.ClaimStatusType" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FilesProccessed" EntityType="Self.FilesProccessed" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SuspiciousCodes" EntityType="Self.SuspiciousCodes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="View_SuspicicousCodes" EntityType="Self.View_SuspicicousCodes" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [View_SuspicicousCodes].[ID] AS [ID], 
+    [View_SuspicicousCodes].[DataImported] AS [DataImported], 
+    [View_SuspicicousCodes].[FileName] AS [FileName], 
+    [View_SuspicicousCodes].[Status] AS [Status]
+    FROM [dbo].[View_SuspicicousCodes] AS [View_SuspicicousCodes]</DefiningQuery>
+          </EntitySet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="MedicalModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Claim">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ClaimNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Code" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="DataImported" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="FileName" Type="Int32" Nullable="false" />
+          <Property Name="Status" Type="Int32" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ClaimStatusType">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Type" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FilesProccessed">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FileName" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="ProccessedStatus" Type="Int32" Nullable="false" />
+        </EntityType>
+        <EntityType Name="SuspiciousCode">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="SuspiciousClaimsCode" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="View_SuspicicousCodes">
+          <Key>
+            <PropertyRef Name="Status" />
+          </Key>
+          <Property Name="ID" Type="Int32" />
+          <Property Name="DataImported" Type="DateTime" Precision="3" />
+          <Property Name="FileName" Type="Int32" />
+          <Property Name="Status" Type="Int32" Nullable="false" />
+        </EntityType>
+        <EntityContainer Name="MedicalContext" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Claims" EntityType="Self.Claim" />
+          <EntitySet Name="ClaimStatusTypes" EntityType="Self.ClaimStatusType" />
+          <EntitySet Name="FilesProccesseds" EntityType="Self.FilesProccessed" />
+          <EntitySet Name="SuspiciousCodes" EntityType="Self.SuspiciousCode" />
+          <EntitySet Name="View_SuspicicousCodes" EntityType="Self.View_SuspicicousCodes" />
+          <FunctionImport Name="usp_proccessFile" ReturnType="Collection(MedicalModel.usp_proccessFile_Result)">
+            <Parameter Name="FilePathName" Mode="In" Type="String" />
+          </FunctionImport>
+        </EntityContainer>
+        <ComplexType Name="usp_proccessFile_Result">
+          <Property Type="String" Name="ClaimNumber" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="Code" Nullable="true" MaxLength="50" />
+        </ComplexType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="MedicalModelStoreContainer" CdmEntityContainer="MedicalContext">
+          <EntitySetMapping Name="Claims">
+            <EntityTypeMapping TypeName="MedicalModel.Claim">
+              <MappingFragment StoreEntitySet="Claims">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="ClaimNumber" ColumnName="ClaimNumber" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="DataImported" ColumnName="DataImported" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ClaimStatusTypes">
+            <EntityTypeMapping TypeName="MedicalModel.ClaimStatusType">
+              <MappingFragment StoreEntitySet="ClaimStatusType">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FilesProccesseds">
+            <EntityTypeMapping TypeName="MedicalModel.FilesProccessed">
+              <MappingFragment StoreEntitySet="FilesProccessed">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="ProccessedStatus" ColumnName="ProccessedStatus" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SuspiciousCodes">
+            <EntityTypeMapping TypeName="MedicalModel.SuspiciousCode">
+              <MappingFragment StoreEntitySet="SuspiciousCodes">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="SuspiciousClaimsCode" ColumnName="SuspiciousClaimsCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="View_SuspicicousCodes">
+            <EntityTypeMapping TypeName="MedicalModel.View_SuspicicousCodes">
+              <MappingFragment StoreEntitySet="View_SuspicicousCodes">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="DataImported" ColumnName="DataImported" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="usp_proccessFile" FunctionName="MedicalModel.Store.usp_proccessFile">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="MedicalModel.usp_proccessFile_Result">
+                <ScalarProperty Name="ClaimNumber" ColumnName="ClaimNumber" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
