@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         WindowState="Maximized"
         Title="MainWindow" Height="1000" Width="525">
-    <Grid >
+   <Grid >
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
             <ColumnDefinition Width="10"/>
@@ -86,13 +86,9 @@
 
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                        <!--<Button BorderThickness="0" Background="Transparent">-->
-                            <!--<Button.InputBindings>
-                                <MouseBinding Gesture="LeftDoubleClick" Command="{Binding OpenFileCommand}"/>
-                            </Button.InputBindings>-->
                             <StackPanel Orientation="Horizontal">
                                 <StackPanel.InputBindings>
-                                <MouseBinding Gesture="LeftDoubleClick" Command="{Binding OpenFileCommand}"/>
+                                <MouseBinding Gesture="LeftDoubleClick" Command="{Binding OpenFtpFileCommand}"/>
                             </StackPanel.InputBindings>
                                 <Image Width="20" Margin="3" 
                                     Source="{Binding Type,

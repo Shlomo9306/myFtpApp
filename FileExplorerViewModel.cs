@@ -73,14 +73,7 @@ namespace MyFileWpfFileExplorer
         /// </summary>
         public FileExplorerViewModel()
         {
-            GoToCommand = new RelayCommand(ExecuteGoTo, CanExecuteExecuteGoTo);
-            GoToFTPCommand = new RelayCommand(ExecuteGoToFTP, CanExecuteExecuteGoToFtp);
-            DownloadCommand = new RelayCommand(ExecuteDownload, CanExecuteExecuteDownload);
-            UploadCommand = new RelayCommand(ExecuteUpload, CanExecuteExecuteUpload);
-            ProcessFileCommand = new RelayCommand(ExecuteProcessFile, CanExecuteExecuteProcessFile);
-            ClearFtpCommand = new RelayCommand(ExecuteClearFtp, CanExecuteExecuteClearFtp);
-            ChangeDefaultFtpInfoCommand = new RelayCommand(ExecuteChangeDefaultFtpInfo, CanExecuteExecuteChangeDefaultFtpInfo);
-            GetDefaultFtpInfoCommand = new RelayCommand(ExecuteGetDefaultFtpInfo, CanExecuteExecuteGetDefaultFtpInfo);
+            ConfigureCommands();
             ConfigureRepository();
             // Get the logical drives
             var drives = DirectoryStructure.GetLogicalDrives();
@@ -94,7 +87,7 @@ namespace MyFileWpfFileExplorer
         #endregion
 
         /// <summary>
-        /// Handles exception that was reised from the view Model ehwn thw event FTPDirectoryStructure.Exception was raised
+        /// Handles exception that was reised from the view Model when thw event FTPDirectoryStructure.Exception was raised
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -109,12 +102,14 @@ namespace MyFileWpfFileExplorer
         private void ExecuteUpload(object obj)
         {
             FTPDirectoryStructure.UploadFile(DirectoryItem.CurrentItem, DirectoryItem.CurrentFTPItem);
+            //TODO before adding the item check if the item Already Exits
             DirectoryItem di = new DirectoryItem(DirectoryItem.CurrentFTPItem.FullPath + @"/" + DirectoryItem.CurrentItem.Name, DirectoryItem.CurrentItem.Type);
             DirectoryItem.CurrentFTPItem.Children.Add(di);
         }
         private void ExecuteDownload(object obj)
         {
-            FTPDirectoryStructure.DownloadFile(DirectoryItem.CurrentFTPItem, DirectoryItem.CurrentItem);
+           var doenloadedFiles = FTPDirectoryStructure.DownloadFile(DirectoryItem.CurrentFTPItem, DirectoryItem.CurrentItem);
+            //TODO before adding the item check if the item Already Exits
             DirectoryItem di = new DirectoryItem(DirectoryItem.CurrentItem.FullPath + @"\\" + DirectoryItem.CurrentFTPItem.Name, DirectoryItem.CurrentFTPItem.Type);
             DirectoryItem.CurrentItem.Children.Add(di);
 
@@ -151,10 +146,7 @@ namespace MyFileWpfFileExplorer
             ConfigureRepository();
             var destinationDownloadedFiles =
                 FTPDirectoryStructure.DownloadFile(DirectoryItem.CurrentFTPItem, DirectoryItem.CurrentItem);
-
-            DirectoryItem di = new DirectoryItem(DirectoryItem.CurrentItem.FullPath + @"\\" + DirectoryItem.CurrentFTPItem.Name, DirectoryItem.CurrentFTPItem.Type);
-            DirectoryItem.CurrentItem.Children.Add(di);
-
+            DirectoryItem.CurrentItem.IsExpanded = true;
 
             var sqlFileList = _filesProccessedRepository.GetAll();
             if (destinationDownloadedFiles.Count == 1 && destinationDownloadedFiles[0].Type == DirectoryItemType.Folder)
@@ -162,7 +154,8 @@ namespace MyFileWpfFileExplorer
                 var dir = destinationDownloadedFiles[0];
                 destinationDownloadedFiles = dir.GetItemChildren().ToList();
             }
-            var currentFtpItemFullPath = String.Copy(DirectoryItem.CurrentFTPItem.FullPath);
+            var currentFtpItemFullPath = DirectoryItem.CurrentFTPItem.Type == DirectoryItemType.Folder ? String.Copy(DirectoryItem.CurrentFTPItem.FullPath) : String.Copy(DirectoryItem.CurrentFTPItem.Path);
+
             foreach (var file in destinationDownloadedFiles)
             {
                 if (file.Type == DirectoryItemType.File)
@@ -184,8 +177,21 @@ namespace MyFileWpfFileExplorer
 
                         DirectoryItem.CurrentFTPItem.FullPath = currentFtpItemFullPath + @"/SuspiciousFiles";
                         FTPDirectoryStructure.UploadFile(suspiciousFile, DirectoryItem.CurrentFTPItem);
-                        //TODO Convert suspiciousFile to Ftp Before Adding CurrentFTPItem.Children
-                        DirectoryItem.CurrentFTPItem.Children.Add(suspiciousFile);
+                        DirectoryItem.CurrentFTPItem.FullPath = currentFtpItemFullPath;
+
+                        if (DirectoryItem.CurrentFTPItem.Type == DirectoryItemType.Folder)
+                        {
+                            //setting toIsFTPExpanded false so the propertyChanget should fire, Fody Weaver some how is blocking the setter of value to some value to be set
+                            DirectoryItem.CurrentFTPItem.IsFTPExpanded = false;
+                            //to refresh to folder
+                            DirectoryItem.CurrentFTPItem.IsFTPExpanded = true;
+                        }
+                        else
+                        {
+                            DirectoryItem directoryItem = FindDirectoryItem(DirectoryItem.CurrentFTPItem.FullPath);
+                            directoryItem.IsFTPExpanded = false;
+                            directoryItem.IsFTPExpanded = true;
+                        }
                     }
                 }
             }
@@ -234,6 +240,18 @@ namespace MyFileWpfFileExplorer
             _filesProccessedRepository = _unitOfWork.GetRepository<FilesProccessed>();
 
         }
+
+        public void ConfigureCommands()
+        {
+            GoToCommand = new RelayCommand(ExecuteGoTo, CanExecuteExecuteGoTo);
+            GoToFTPCommand = new RelayCommand(ExecuteGoToFTP, CanExecuteExecuteGoToFtp);
+            DownloadCommand = new RelayCommand(ExecuteDownload, CanExecuteExecuteDownload);
+            UploadCommand = new RelayCommand(ExecuteUpload, CanExecuteExecuteUpload);
+            ProcessFileCommand = new RelayCommand(ExecuteProcessFile, CanExecuteExecuteProcessFile);
+            ClearFtpCommand = new RelayCommand(ExecuteClearFtp, CanExecuteExecuteClearFtp);
+            ChangeDefaultFtpInfoCommand = new RelayCommand(ExecuteChangeDefaultFtpInfo, CanExecuteExecuteChangeDefaultFtpInfo);
+            GetDefaultFtpInfoCommand = new RelayCommand(ExecuteGetDefaultFtpInfo, CanExecuteExecuteGetDefaultFtpInfo);
+        }
         private DirectoryItem CreateFile(string filePath, string fileName, List<usp_proccessFile_Result> claimResult)
         {
             var suspiciousFile = new DirectoryItem(filePath + @"\" + fileName, DirectoryItemType.File);
@@ -246,6 +264,12 @@ namespace MyFileWpfFileExplorer
             }
 
             return suspiciousFile;
+        }
+
+        private DirectoryItem FindDirectoryItem(string fullpath)
+        {
+            DirectoryItem directoryItem = FTPItems.SingleOrDefault(i => i.FullPath == fullpath);
+            return directoryItem;
         }
 
         #endregion

@@ -79,10 +79,10 @@
     </Compile>
     <Compile Include="AppSettings.cs" />
     <Compile Include="Directory\Data\DirectoryItemType.cs" />
-    <Compile Include="Directory\FTPDirectoryStructure.cs" />
-    <Compile Include="Directory\DirectoryStructure.cs" />
+    <Compile Include="Directory\Data\FTPDirectoryStructure.cs" />
+    <Compile Include="Directory\Data\DirectoryStructure.cs" />
     <Compile Include="Directory\ViewModels\Base\BaseViewModel.cs" />
-    <Compile Include="Directory\ViewModels\DirectoryItem.cs" />
+    <Compile Include="Directory\Data\DirectoryItem.cs" />
     <Compile Include="Directory\ViewModels\Base\RelayCommand.cs" />
     <Compile Include="FileExplorerViewModel.cs" />
     <Compile Include="HeaderToImageConverter.cs" />

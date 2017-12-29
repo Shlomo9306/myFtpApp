@@ -246,7 +246,8 @@ namespace MyFileWpfFileExplorer
         /// <returns></returns>
         public static string CreateFtpDirectory(DirectoryItem fullPath, string directoryName)
         {
-            Host = fullPath.FullPath + @"/" + directoryName;
+            Host = fullPath.Type == DirectoryItemType.Folder ? fullPath.FullPath + @"/" + directoryName : fullPath.Path + @"/" + directoryName;
+            
             _request = BuildUri();
             _request.Method = WebRequestMethods.Ftp.MakeDirectory;
             using (var resp = (FtpWebResponse)_request.GetResponse())
