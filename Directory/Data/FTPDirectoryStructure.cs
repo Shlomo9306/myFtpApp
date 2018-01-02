@@ -4,6 +4,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace MyFileWpfFileExplorer
@@ -37,8 +38,8 @@ namespace MyFileWpfFileExplorer
 
             try
             {
-                var dirs = GetDirectories();
-
+                //var dirs = GetDirectories();
+                var dirs = GetDirectorysContent().directoryList;
                 if (dirs.Count > 0)
                 {
                     items.AddRange(dirs.Select(dir =>
@@ -57,8 +58,8 @@ namespace MyFileWpfFileExplorer
             // ignoring any issues doing so
             try
             {
-                var fs = GetFiles();
-
+                //var fs = GetFiles();
+                var fs = GetDirectorysContent().fileList;
                 if (fs.Count > 0)
                     items.AddRange(fs.Select(file => new DirectoryItem(Host + @"/" + GetFileFolderName(file), DirectoryItemType.File)));
             }
@@ -146,9 +147,8 @@ namespace MyFileWpfFileExplorer
         }
         private static List<string> GetDirectories()
         {
-            StreamReader readerDetails = ExecuteRequest();
             List<string> responseDirectoryDetails = new List<string>();
-            var folders = string.Concat(readerDetails.ReadToEnd().ToList());
+            var folders = ExecuteRequest();
             if (!string.IsNullOrEmpty(folders))
             {
                 responseDirectoryDetails = folders
@@ -162,18 +162,37 @@ namespace MyFileWpfFileExplorer
         }
         private static List<string> GetFiles()
         {
-            StreamReader readerDetails = ExecuteRequest();
             List<string> responseFilesDetails = new List<string>();
-            var files = string.Concat(readerDetails.ReadToEnd().ToList());
+            var files = ExecuteRequest();
             if (!string.IsNullOrEmpty(files))
             {
                 responseFilesDetails = files
-                        .Split(new String[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
+                        .Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
                     .Where(r => (r.Substring(r.LastIndexOf(' ') + 1, 1) != ".") &&
                                 (!r.Contains("<DIR>") && r[0].ToString() != "d")).ToList();
             }
 
             return responseFilesDetails;
+        }
+
+        public static(List<string> directoryList, List<string> fileList) GetDirectorysContent()
+        {
+            List<string> responseDirectoryDetails = new List<string>();
+            List<string> responseFilesDetails = new List<string>();
+            var result = ExecuteRequest();
+            if (!string.IsNullOrEmpty(result))
+            {
+                responseFilesDetails = result
+                    .Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
+                    .Where(r => (r.Substring(r.LastIndexOf(' ') + 1, 1) != ".") &&
+                                (!r.Contains("<DIR>") && r[0].ToString() != "d")).ToList();
+
+                responseDirectoryDetails = result
+                    .Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
+                    .Where(r => (r.Substring(r.LastIndexOf(' ') + 1, 1) != ".") &&
+                                (r.Contains("<DIR>") || r[0].ToString() == "d")).ToList();
+            }
+            return (responseDirectoryDetails, responseFilesDetails);
         }
         /// <summary>
         /// Biulds the requset string with FTP Server Credentials 
@@ -186,7 +205,7 @@ namespace MyFileWpfFileExplorer
             _request.Credentials = new NetworkCredential(UserName, Password);
             return _request;
 
-        } 
+        }
         #endregion
 
         #region Helpers
@@ -195,14 +214,23 @@ namespace MyFileWpfFileExplorer
         /// </summary>
         /// <param name="path">The full path</param>
         /// <returns></returns>
-        private static StreamReader ExecuteRequest()
+        private static string ExecuteRequest()
         {
+            string results;
             _request = BuildUri();
             _request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
-            var responseDetails = (FtpWebResponse)_request.GetResponse();
-            Stream responseDetailsStream = responseDetails.GetResponseStream();
-            StreamReader readerDetails = new StreamReader(responseDetailsStream);
-            return readerDetails;
+
+            using (var responseDetails = (FtpWebResponse)_request.GetResponse())
+            using (StreamReader reader = new StreamReader(responseDetails.GetResponseStream()))
+            {
+                results = string.Concat(reader.ReadToEnd().ToList());
+            }
+
+
+           // var responseDetails = (FtpWebResponse)_request.GetResponse();
+            //Stream responseDetailsStream = responseDetails.GetResponseStream();
+            //StreamReader readerDetails = new StreamReader(responseDetailsStream);
+            return results;
         }
         /// <summary>
         /// Find the file or folder name from a full path
@@ -247,7 +275,7 @@ namespace MyFileWpfFileExplorer
         public static string CreateFtpDirectory(DirectoryItem fullPath, string directoryName)
         {
             Host = fullPath.Type == DirectoryItemType.Folder ? fullPath.FullPath + @"/" + directoryName : fullPath.Path + @"/" + directoryName;
-            
+
             _request = BuildUri();
             _request.Method = WebRequestMethods.Ftp.MakeDirectory;
             using (var resp = (FtpWebResponse)_request.GetResponse())
@@ -279,29 +307,4 @@ namespace MyFileWpfFileExplorer
         #endregion
     }
 }
-//public static List<string> ReadFile(DirectoryItem item)
-//{
-//    string data = "";
-//    List<string> dataFromFTPFile = new List<string>();
-//    Host = item.FullPath;
-//    _request = BuildURI();
-//    _request.Method = WebRequestMethods.Ftp.DownloadFile;
-//    try
-//    {
-//        using (Stream ftpStream = _request.GetResponse().GetResponseStream())
-//        {
-//            using (StreamReader ftpReader = new StreamReader(ftpStream))
-//            {
-//                data = ftpReader.ReadToEnd();
-//                dataFromFTPFile = Regex.Split(data, "\r\n").ToList();
-//            }
-//        }
-//    }
-//    catch (Exception ex)
-//    {
-//        Console.WriteLine(ex.Message);
-//        throw;
-//    }
-//    return dataFromFTPFile;
-//}
 

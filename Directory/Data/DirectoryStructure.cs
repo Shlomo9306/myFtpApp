@@ -91,6 +91,11 @@ namespace MyFileWpfFileExplorer
             // Return the name after the last back slash
             return fullPath.Substring(lastIndex + 1);
         }
+        /// <summary>
+        /// Find the path from a full path
+        /// </summary>
+        /// <param name="fullPath">The full path</param>
+        /// <returns></returns>
         public static string GetPathName (string fullPath)
         {
             // If we have no path, return empty

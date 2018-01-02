@@ -29,6 +29,9 @@ namespace MyFileWpfFileExplorer
                     image = "Images/folder-closed.png";
                     break;
             }
+
+
+
             return new BitmapImage(new Uri($"pack://application:,,,/{image}"));
         }
 

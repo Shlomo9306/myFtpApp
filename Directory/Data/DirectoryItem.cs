@@ -11,9 +11,15 @@ namespace MyFileWpfFileExplorer
     {
 
         #region Public Static Properties
+        /// <summary>
+        /// Currens selected File Or Folder Or Drive
+        /// </summary>
         public static DirectoryItem CurrentItem { get; set; }
-        public static DirectoryItem CurrentFTPItem { get;  set; } 
-      
+        /// <summary>
+        /// Currens selected FTP  File Or Folder
+        /// </summary>
+        public static DirectoryItem CurrentFTPItem { get; set; }
+
         #endregion
 
         #region Public Properties
@@ -41,7 +47,7 @@ namespace MyFileWpfFileExplorer
         /// A list of all children contained inside this item
         /// </summary>
         public ObservableCollection<DirectoryItem> Children { get; set; }
-      
+
 
         /// <summary>
         /// Indicates if this item can be expanded
@@ -67,7 +73,7 @@ namespace MyFileWpfFileExplorer
                     Expand();
                 // If the UI tells us to close
                 else
-                    this.ClearChildren();
+                    this.SetUpChildren();
             }
         }
         public bool IsFTPExpanded
@@ -84,17 +90,17 @@ namespace MyFileWpfFileExplorer
                     ExpandFTP();
                 // If the UI tells us to close
                 else
-                    this.ClearChildren();
+                    this.SetUpChildren();
             }
         }
         /// <summary>
-        /// Indicates if the current item is expanded or not
+        /// Indicates if the current item is selected or not
         /// </summary>
         private bool _isSelected;
         private bool _isFTPSelected;
-        public bool IsSelected { get => _isSelected;  set { _isSelected = value; if (IsSelected) CurrentItem = this; } }
-       
-        public bool IsFTPSelected { get => _isFTPSelected;  set { _isFTPSelected = value; if (IsFTPSelected) CurrentFTPItem = this; } }
+        public bool IsSelected { get => _isSelected; set { _isSelected = value; if (IsSelected) CurrentItem = this; } }
+
+        public bool IsFTPSelected { get => _isFTPSelected; set { _isFTPSelected = value; if (IsFTPSelected) CurrentFTPItem = this; } }
 
         #endregion
 
@@ -103,7 +109,7 @@ namespace MyFileWpfFileExplorer
         public ICommand ExpandCommand { get; set; }
         public ICommand OpenFileCommand { get; set; }
         public ICommand OpenFtpFileCommand { get; set; }
-        
+
         #endregion
 
         #region Constructor
@@ -116,19 +122,17 @@ namespace MyFileWpfFileExplorer
         public DirectoryItem(string fullPath, DirectoryItemType? type)
         {
             // Create commands
-            ExpandCommand = new RelayCommand(Expand, null);
-            OpenFileCommand = new RelayCommand(OpenFile, null);
-            OpenFtpFileCommand = new RelayCommand(OpenFtpFile, null);
+            ConfigureCommands();
 
             // Set path and type
             this.FullPath = fullPath;
             this.Type = type;
 
             // Setup the children as needed
-            this.ClearChildren();
-           
+            this.SetUpChildren();
+
         }
-        
+
         #endregion
 
         #region Command Methods
@@ -147,7 +151,7 @@ namespace MyFileWpfFileExplorer
             var children = DirectoryStructure.GetDirectoryContents(this.FullPath);
             this.Children = new ObservableCollection<DirectoryItem>(
                                 children.Select(content => new DirectoryItem(content.FullPath, content.Type)));
-            
+
         }
         private void ExpandFTP()
         {
@@ -158,7 +162,7 @@ namespace MyFileWpfFileExplorer
             }
 
             // Find all children
-            FTPDirectoryStructure.Host = FullPath;
+            FTPDirectoryStructure.Host = FullPath +"/";
             var children = FTPDirectoryStructure.GetFTPDirectoryContents();
             this.Children = new ObservableCollection<DirectoryItem>(
                                 children.Select(content => new DirectoryItem(content.FullPath, content.Type)));
@@ -189,10 +193,16 @@ namespace MyFileWpfFileExplorer
 
         #region Helper Methods
 
+        private void ConfigureCommands()
+        {
+            ExpandCommand = new RelayCommand(Expand, null);
+            OpenFileCommand = new RelayCommand(OpenFile, null);
+            OpenFtpFileCommand = new RelayCommand(OpenFtpFile, null);
+        }
         /// <summary>
         /// Removes all children from the list, adding a dummy item to show the expand icon if required
         /// </summary>
-        private void ClearChildren()
+        private void SetUpChildren()
         {
             // Clear items
             this.Children = new ObservableCollection<DirectoryItem>();
